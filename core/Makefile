@@ -1,11 +1,18 @@
-all: interactive_mode.o main.o
-	ld -relocatable main.o interactive_mode.o -o core.o
+OBJ_FILES = main interactive_mode info
 
-main.o:
-	gcc -c src/main.c -o main.o
+.SILENT: clean-temp
 
-interactive_mode.o:
-	gcc -c src/interactive_mode.c -o interactive_mode.o
+all: $(OBJ_FILES)
+	ld -relocatable $(OBJ_FILES) -o core.o
+	make clean-temp
+
+$(OBJ_FILES):
+	gcc -c src/$@.c -o $@
 
 clean:
 	rm *.o
+
+clean-temp:
+	for file in $(OBJ_FILES); do \
+		rm $$file;	\
+	done;

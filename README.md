@@ -5,18 +5,18 @@
 
 ### Build ⚔️ Run ⚔️ Clean
 
-Build 🏗️:
+Build 🏗️
 ```shell
 make
 ```
 
-Run 🏃:
+Run 🏃
 ```shell
 ./super-fs start
 ./super-fs info
 ```
 
-Clean 🧹:
+Clean 🧹
 ```shell
 make clean
 ```

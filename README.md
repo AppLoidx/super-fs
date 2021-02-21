@@ -1,4 +1,4 @@
-## Super File System Utilityi 🤠
+## Super File System Utility 🤠
 
 ![](https://i.pinimg.com/564x/25/1f/7a/251f7a7750a8c0e148098b254bded227.jpg)
 

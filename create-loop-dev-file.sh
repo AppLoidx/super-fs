@@ -1,7 +1,8 @@
 #!/bin/bash
+# 
+# WARNING: Requires sudo mode
 #
 # Create loop device file in current folder (with mounting on /dev/loop* via losetup)
-# 
 # P.S. Feel free to use, because it's not a part of labwork
 #
 # Author : Arthur Kuprianov, 2021

@@ -25,16 +25,23 @@ make clean
 
 ```text
 ├── cli
-│   ├── Makefile
-│   ├── inc
-│   │   └── interactive.h
-│   └── src
-│       └── interactive.c
+│   ├── inc
+│   │   └── interactive.h
+│   ├── Makefile
+│   └── src
+│       └── interactive.c
 ├── core
-│   ├── Makefile
-│   ├── inc
-│   │   └── interactive_mode.h
-│   └── src
-│       ├── interactive_mode.c
-│       └── main.c
+│   ├── inc
+│   │   ├── device.h
+│   │   ├── info.h
+│   │   └── interactive_mode.h
+│   ├── Makefile
+│   └── src
+│       ├── device.c
+│       ├── info.c
+│       ├── interactive_mode.c
+│       └── main.c
+├── create-loop-dev-file.sh
+├── Makefile
+├── README.md
 ```

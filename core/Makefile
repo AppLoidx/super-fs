@@ -1,4 +1,4 @@
-OBJ_FILES = main interactive_mode info
+OBJ_FILES = main interactive_mode info device
 
 .SILENT: clean-temp
 

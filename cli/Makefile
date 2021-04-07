@@ -4,7 +4,7 @@ OBJ_FILES = interactive
 .SILENT: clean-temp
 
 all: $(OBJ_FILES)
-	        ld -relocatable $(OBJ_FILES) -o core.o
+	        ld -relocatable $(OBJ_FILES) -o cli.o
 					make clean-temp
 
 $(OBJ_FILES):

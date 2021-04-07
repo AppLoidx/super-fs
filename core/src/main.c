@@ -3,7 +3,7 @@
 
 #include "../../cli/inc/interactive.h"
 #include "../inc/interactive_mode.h"
-
+#include "../inc/device.h"
 
 int main(int argc, char *argv[]) {
   
@@ -15,6 +15,7 @@ int main(int argc, char *argv[]) {
 
   if (!strcmp(argv[1], "info")) {
     fputs("Start application in info mode\n", stderr);
+    print_devices(stderr);
   } else if (!strcmp(argv[1], "start")) {
     return startInteractiveMode();
 

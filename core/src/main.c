@@ -8,7 +8,7 @@
 int main(int argc, char *argv[]) {
   
 
-  if (argc != 2) {
+  if (argc < 2) {
     fputs("Invalid command-line arguments!", stderr);
     return 1;
   }
@@ -16,8 +16,12 @@ int main(int argc, char *argv[]) {
   if (!strcmp(argv[1], "info")) {
     fputs("Start application in info mode\n", stderr);
     print_devices(stderr);
-  } else if (!strcmp(argv[1], "start")) {
-    return startInteractiveMode();
+  } else if (!strcmp(argv[1], "fs")) {
+    if (argc != 3) {
+      fputs("Invalid command-line args. Please refer to help command", stderr);
+    }
+
+    return startInteractiveMode(argv[2]);
 
   } else {
     fputs("Invalid command-line argument. Please refer to \"super-fs help\" command", stderr);

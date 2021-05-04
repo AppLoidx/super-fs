@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
       fputs("Invalid command-line args. Please refer to help command", stderr);
     }
 
-    return startInteractiveMode(argv[2]);
+    return start_interactive_mode(argv[2]);
 
   } else {
     fputs("Invalid command-line argument. Please refer to \"super-fs help\" command", stderr);

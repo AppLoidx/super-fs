@@ -1,6 +1,7 @@
 #!/bin/bash
 
-make clean all
+make clean
+make
 clear
 
 if ! command -v fzf &> /dev/null

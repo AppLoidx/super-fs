@@ -4,7 +4,9 @@
 
 
 char * readInput() {
-  char* input = malloc(sizeof(char) * INPUT_BUF_SIZE);
-  fgets(input, INPUT_BUF_SIZE, stdin);
-  return input;
+  fputs("Krasavchik?> ", stdout);
+  char *cmd;
+  scanf("%ms", &cmd);
+
+  return cmd;
 }

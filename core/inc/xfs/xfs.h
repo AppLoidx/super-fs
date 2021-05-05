@@ -21,7 +21,8 @@ typedef enum xfs_err {
   XFS_ERR_MAGIC,
   XFS_ERR_FORMAT,
   XFS_ERR_FILENAME_NOT_FOUND,
-  XFS_ERR_NOT_A_DIRECTORY
+  XFS_ERR_NOT_A_DIRECTORY,
+  XFS_ERR_INVALID_FILE,
 } xfs_err_t;
 
 #define XFS_CHKTHROW(action)                                                \
@@ -34,7 +35,9 @@ typedef enum xfs_err {
 xfs_err_t read_xfs_from_device(xfs_t *fm, char const *device_path);
 xfs_err_t xfs_sample(xfs_t *fm);
 xfs_err_t xfs_ls(xfs_t *fm);
-xfs_err_t xfs_cd(xfs_t *fm, char const *dirname, size_t dirnamelen);
+xfs_err_t xfs_cd(xfs_t *fm, char const *dirname, size_t dirname_size);
 xfs_err_t xfs_cp(xfs_t *fm, char const *from, char const *to);
+xfs_err_t xfs_dog(xfs_t *fm, char const *filename, size_t filename_size);
+
 
 #endif

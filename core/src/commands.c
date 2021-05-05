@@ -68,25 +68,25 @@ static int help_cmd() {
 @fm - file manager
 */
 int resolve(char *cmd, xfs_t *fm) {
-  int retcode = 1;
+  int res = 1;
   if (strcmp("ls", cmd) == 0)
-    retcode = ls_cmd(fm);
+    res = ls_cmd(fm);
   else if (strcmp("cd", cmd) == 0)
-    retcode = cd_cmd(fm);
+    res = cd_cmd(fm);
   else if (strcmp("cp", cmd) == 0)
-    retcode = cp_cmd(fm);
+    res = cp_cmd(fm);
   // next part of cp command will be executed inside cp_cmd
   else if (strcmp("exit", cmd) == 0)
-    retcode = 0;
+    res = 0;
   else if (strcmp("help", cmd) == 0)
-    retcode = help_cmd();
+    res = help_cmd();
   else if (strcmp("dog", cmd) == 0) {
-    retcode = dog_cmd(fm);
+    res = dog_cmd(fm);
   } else
     printf("Unknown command '%s'. Use help command\n", cmd);
 
   // parse end of command
   scanf("%*[^\n]");
   free(cmd);
-  return retcode;
+  return res;
 }

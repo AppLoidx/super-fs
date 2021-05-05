@@ -25,7 +25,7 @@ typedef enum xfs_err {
   XFS_ERR_INVALID_FILE,
 } xfs_err_t;
 
-#define XFS_CHKTHROW(action)                                                \
+#define XFS_CALL_WRAP(action)                                                \
   do {                                                                         \
     xfs_err_t xfs_err##__LINE__ = action;                                \
     if (xfs_err##__LINE__ != XFS_ERR_NONE)                               \

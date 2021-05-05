@@ -84,7 +84,7 @@ static xfs_err_t xfs_dir_iter_local_(xfs_t *fm, xfs_dinode_core_t *core,
   entry.name[0] = '.';
   entry.name[1] = '\0';
   entry.inumber = fm->ino_current_dir;
-  entry.ftype = XFS_DIR3_FT_DIR;
+  entry.ftype = XFS_DIR_FILETYPE_DIR;
   if (!(*callback)(self, &entry))
     return XFS_ERR_NONE;
 
@@ -93,7 +93,7 @@ static xfs_err_t xfs_dir_iter_local_(xfs_t *fm, xfs_dinode_core_t *core,
   entry.name[1] = '.';
   entry.name[2] = '\0';
   entry.inumber = parent;
-  entry.ftype = XFS_DIR3_FT_DIR;
+  entry.ftype = XFS_DIR_FILETYPE_DIR;
   if (!(*callback)(self, &entry))
     return XFS_ERR_NONE;
 
@@ -179,7 +179,7 @@ static xfs_err_t xfs_dir_iter_extents_(xfs_t *fm, xfs_dinode_core_t *core,
   block_self.entry_callback = callback;
   block_self.err = XFS_ERR_NONE;
 
-  XFS_CHKTHROW(
+  XFS_CALL_WRAP(
       xfs_iter_extents_(fm, core, dfork, &block_self, xfs_dir_iter_block_));
   return block_self.err;
 }
@@ -193,7 +193,7 @@ static xfs_err_t xfs_dir_iter_btree_(xfs_t *fm, xfs_dinode_core_t *core,
   block_self.entry_callback = callback;
   block_self.err = XFS_ERR_NONE;
 
-  XFS_CHKTHROW(
+  XFS_CALL_WRAP(
       xfs_iter_btree_(fm, core, dfork, &block_self, xfs_dir_iter_block_));
   return block_self.err;
 }
@@ -234,10 +234,10 @@ xfs_err_t xfs_dir_iter_(xfs_t *fm, void *self, callback_t callback) {
 static int dir_entry_observer_call__(void *self, void *data) {
   xfs_dir_entry_t *entry = data;
   switch (entry->ftype) {
-  case XFS_DIR3_FT_DIR:
+  case XFS_DIR_FILETYPE_DIR:
     fputs("[dir 📁 ] \t", stdout);
     break;
-  case XFS_DIR3_FT_REG_FILE:
+  case XFS_DIR_FILETYPE_REG_FILE:
     fputs("[file 📝 ] \t", stdout);
     break;
   default:
@@ -273,7 +273,7 @@ xfs_err_t xfs_find_entry_(xfs_t *fm, xfs_dir_entry_t *expected) {
   xfs_dir_entry_find_callback_self_t self;
   self.expected = expected;
   self.err = XFS_ERR_NONE;
-  XFS_CHKTHROW(xfs_dir_iter_(fm, &self, xfs_dir_entry_find_callback_));
+  XFS_CALL_WRAP(xfs_dir_iter_(fm, &self, xfs_dir_entry_find_callback_));
   return self.err;
 }
 
@@ -285,8 +285,8 @@ xfs_err_t xfs_cd(xfs_t *fm, char const *dirname, size_t dirname_size) {
   xfs_dir_entry_t dir;
   memcpy(dir.name, dirname, dirname_size);
   dir.namelen = dirname_size;
-  XFS_CHKTHROW(xfs_find_entry_(fm, &dir));
-  if (dir.ftype != XFS_DIR3_FT_DIR)
+  XFS_CALL_WRAP(xfs_find_entry_(fm, &dir));
+  if (dir.ftype != XFS_DIR_FILETYPE_DIR)
     return XFS_ERR_NOT_A_DIRECTORY;
   fm->ino_current_dir = dir.inumber;
   return XFS_ERR_NONE;
@@ -341,7 +341,7 @@ static xfs_err_t xfs_cp_file__(xfs_t *fm, xfs_dir_entry_t *dir_entry) {
   self.err = XFS_ERR_NONE;
   xfs_err_t iter_err = iterfun(fm, di, dfork, &self, xfs_cp_file_block__);
   fclose(f);
-  XFS_CHKTHROW(iter_err);
+  XFS_CALL_WRAP(iter_err);
   return self.err;
 }
 
@@ -392,10 +392,10 @@ static xfs_err_t xfs_cp_dir_(xfs_t *fm, xfs_dir_entry_t *what) {
 
 static xfs_err_t xfs_cp_entry_(xfs_t *fm, xfs_dir_entry_t *what) {
   switch (what->ftype) {
-  case XFS_DIR3_FT_REG_FILE:
+  case XFS_DIR_FILETYPE_REG_FILE:
     xfs_cp_file__(fm, what);
     break;
-  case XFS_DIR3_FT_DIR:
+  case XFS_DIR_FILETYPE_DIR:
     xfs_cp_dir_(fm, what);
     break;
   default:
@@ -454,7 +454,7 @@ static xfs_err_t xfs_iter_over_file_blocks_(xfs_t *fm, xfs_dir_entry_t *dir_entr
 
   xfs_err_t iter_err = iterfun(fm, di, dfork, self, callback);
   return iter_err;
-  XFS_CHKTHROW(iter_err);
+  XFS_CALL_WRAP(iter_err);
 }
 
 
@@ -463,9 +463,9 @@ xfs_err_t xfs_dog(xfs_t *fm, char const *filename, size_t filename_size) {
   xfs_dir_entry_t file;
   memcpy(file.name, filename, filename_size);
   file.namelen = filename_size;
-  XFS_CHKTHROW(xfs_find_entry_(fm, &file));
+  XFS_CALL_WRAP(xfs_find_entry_(fm, &file));
 
-  if (file.ftype != XFS_DIR3_FT_REG_FILE)
+  if (file.ftype != XFS_DIR_FILETYPE_REG_FILE)
     return XFS_ERR_INVALID_FILE;
 
   xfs_cp_file_block_self_t this;

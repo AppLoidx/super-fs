@@ -2,6 +2,10 @@
 
 ![](https://i.pinimg.com/564x/25/1f/7a/251f7a7750a8c0e148098b254bded227.jpg)
 
+### Report
+
+* Markdown (preferable to read) : https://github.com/AppLoidx/super-fs/blob/main/docs/report.md
+* Pdf (just as needed) :  https://github.com/AppLoidx/super-fs/blob/main/docs/spo1.pdf
 
 ### Build ⚔️ Run ⚔️ Clean
 

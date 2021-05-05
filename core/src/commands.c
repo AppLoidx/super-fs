@@ -16,7 +16,8 @@ static void wrap_err__(xfs_err_t code) {
     fputs("This is not a file, duuude!\n", stderr);
     break;
   case XFS_ERR_NOT_A_DIRECTORY:
-    fputs("Do you really think this is a dir? Maa-an, see \'ls\' command!\n", stderr);
+    fputs("Do you really think this is a dir? Maa-an, see \'ls\' command!\n",
+          stderr);
     break;
     WRAP_ERR__(XFS_ERR_FILENAME_NOT_FOUND)
     WRAP_ERR__(XFS_ERR_NOT_SUPPORTED)
@@ -58,6 +59,11 @@ static int cp_cmd(xfs_t *fm) {
   return 1;
 }
 
+static int pwd_cmd(xfs_t *fm) {
+  wrap_err__(xfs_pwd(fm));
+  return 1;
+}
+
 static int help_cmd() {
   fputs("ls, cd, cp, exit, help, dog", stderr);
   return 1;
@@ -71,7 +77,9 @@ int resolve(char *cmd, xfs_t *fm) {
   int res = 1;
   if (strcmp("ls", cmd) == 0)
     res = ls_cmd(fm);
-  else if (strcmp("cd", cmd) == 0)
+  else if (strcmp("pwd", cmd) == 0) {
+    res = pwd_cmd(fm);
+  } else if (strcmp("cd", cmd) == 0)
     res = cd_cmd(fm);
   else if (strcmp("cp", cmd) == 0)
     res = cp_cmd(fm);

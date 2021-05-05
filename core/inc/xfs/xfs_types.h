@@ -72,6 +72,19 @@ typedef enum xfs_dinode_fmt {
   XFS_DINODE_FMT_RMAP,
 } xfs_dinode_fmt_t;
 
+enum xfs_dir3_ft {
+  XFS_DIR3_FT_UNKNOWN,
+  XFS_DIR3_FT_REG_FILE,
+  XFS_DIR3_FT_DIR,
+  XFS_DIR3_FT_CHRDEV,
+  XFS_DIR3_FT_BLKDEV,
+  XFS_DIR3_FT_FIFO,
+  XFS_DIR3_FT_SOCK,
+  XFS_DIR3_FT_SYMLINK,
+  XFS_DIR3_FT_WHT
+};
+
+
 
 typedef struct PACKED {
   __uint8_t i[8];

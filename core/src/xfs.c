@@ -21,6 +21,7 @@ xfs_err_t read_xfs_from_device(xfs_t *fm, char const *device_path) {
   if (be32toh(fm->sb.sb_magicnum) != XFS_SB_MAGIC)
     return XFS_ERR_MAGIC;
   fm->ino_current_dir = be64toh(fm->sb.sb_rootino);
+  fm->path = NULL;
   return XFS_ERR_NONE;
 }
 
@@ -252,6 +253,30 @@ xfs_err_t xfs_ls(xfs_t *fm) {
   return xfs_dir_iter_(fm, NULL, dir_entry_observer_call__);
 }
 
+
+void pwd_iter(path_store_t *store) {
+  if (store) {
+    path_store_t *next = store->next;
+    fputs(store->data, stderr);
+    fputs(" <- ", stderr);
+    pwd_iter(next);
+  } else {
+    fputs("/", stderr);
+  }
+}
+
+
+xfs_err_t xfs_pwd(xfs_t *fm) {
+  path_store_t *store = fm->path;
+  fputs("Your current directory is : ", stderr);
+  pwd_iter(store);
+  fputs("\n", stderr);
+
+  return XFS_ERR_NONE;
+}
+
+
+
 typedef struct xfs_dir_entry_find_callback_self {
   xfs_dir_entry_t *expected;
   xfs_err_t err;
@@ -280,20 +305,30 @@ xfs_err_t xfs_find_entry_(xfs_t *fm, xfs_dir_entry_t *expected) {
 xfs_err_t xfs_cd(xfs_t *fm, char const *dirname, size_t dirname_size) {
   if (dirname_size == 1 && dirname[0] == '/') {
     fm->ino_current_dir = be64toh(fm->sb.sb_rootino);
+    path_store_free(fm->path);
+    fm->path = NULL;
     return XFS_ERR_NONE;
   }
   xfs_dir_entry_t dir;
   memcpy(dir.name, dirname, dirname_size);
   dir.namelen = dirname_size;
   XFS_CALL_WRAP(xfs_find_entry_(fm, &dir));
-  if (dir.ftype != XFS_DIR_FILETYPE_DIR)
+  if (dir.ftype != XFS_DIR3_FT_DIR)
     return XFS_ERR_NOT_A_DIRECTORY;
   fm->ino_current_dir = dir.inumber;
+  if (dirname_size == 1 && dirname[0] == '.') {
+    // ignore
+  } else if (dirname_size == 2 && dirname[0] == '.' && dirname[1] == '.') {
+    if (fm->path)
+      path_store_remove(&fm->path);
+  } else {
+    path_store_add(&fm->path, dirname, dirname_size);
+  }
   return XFS_ERR_NONE;
 }
 
-static xfs_err_t fm_xfs_iter_file_blocks_(xfs_t *fm, xfs_dir_entry_t *what, 
-void *self, callback_t callback) {
+static xfs_err_t fm_xfs_iter_file_blocks_(xfs_t *fm, xfs_dir_entry_t *what,
+                                          void *self, callback_t callback) {
   __uint16_t inodesize = be16toh(fm->sb.sb_inodesize);
   void *inode_info = alloca(inodesize);
   fseek(fm->f, inodesize * what->inumber, SEEK_SET);
@@ -322,8 +357,6 @@ void *self, callback_t callback) {
 
   XFS_CALL_WRAP(iter_err);
 }
-
-
 
 typedef struct xfs_cp_file_block_self {
   __uint32_t blocksize;
@@ -438,8 +471,9 @@ xfs_err_t xfs_cp(xfs_t *fm, char const *from, char const *to) {
   return XFS_ERR_NONE;
 }
 
-
-static xfs_err_t xfs_iter_over_file_blocks_(xfs_t *fm, xfs_dir_entry_t *dir_entry, void *self, callback_t callback) {
+static xfs_err_t xfs_iter_over_file_blocks_(xfs_t *fm,
+                                            xfs_dir_entry_t *dir_entry,
+                                            void *self, callback_t callback) {
   __uint16_t inodesize = be16toh(fm->sb.sb_inodesize);
   void *inode_info = alloca(inodesize);
   fseek(fm->f, inodesize * dir_entry->inumber, SEEK_SET);
@@ -468,7 +502,6 @@ static xfs_err_t xfs_iter_over_file_blocks_(xfs_t *fm, xfs_dir_entry_t *dir_entr
   XFS_CALL_WRAP(iter_err);
 }
 
-
 // cat analog :)
 xfs_err_t xfs_dog(xfs_t *fm, char const *filename, size_t filename_size) {
   xfs_dir_entry_t file;
@@ -483,7 +516,7 @@ xfs_err_t xfs_dog(xfs_t *fm, char const *filename, size_t filename_size) {
   this.blocksize = be32toh(fm->sb.sb_blocksize);
   this.stream = stdout; // output
   this.err = XFS_ERR_NONE;
-  
+
   xfs_iter_over_file_blocks_(fm, &file, &this, xfs_cp_file_block__);
   return this.err;
 }

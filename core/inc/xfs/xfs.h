@@ -2,6 +2,7 @@
 #define _XFS_H_
 
 #include "xfs_types.h"
+#include "utils.h"
 
 /* 8-битная длина файла -- максимум 256 символов */
 #define FILENAME_BUFLEN 256
@@ -10,6 +11,7 @@ typedef struct xfs {
   FILE *f;
   xfs_sb_t sb;
   xfs_ino_t ino_current_dir;
+  path_store_t *path;
 } xfs_t;
 
 typedef enum xfs_err {
@@ -38,6 +40,7 @@ xfs_err_t xfs_ls(xfs_t *fm);
 xfs_err_t xfs_cd(xfs_t *fm, char const *dirname, size_t dirname_size);
 xfs_err_t xfs_cp(xfs_t *fm, char const *from, char const *to);
 xfs_err_t xfs_dog(xfs_t *fm, char const *filename, size_t filename_size);
+xfs_err_t xfs_pwd(xfs_t *fm);
 
 
 #endif

@@ -1,4 +1,4 @@
-OBJ_FILES = main interactive_mode info device xfs commands
+OBJ_FILES = main interactive_mode info device xfs commands utils
 
 .SILENT: clean-temp
 

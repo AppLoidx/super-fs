@@ -12,8 +12,14 @@ make
 
 Run 🏃
 ```shell
-./super-fs start
+./super-fs fs <fs_file>
 ./super-fs info
+```
+
+or you can just run `start.sh` shell-script (recommended)
+
+```shell
+./start.sh
 ```
 
 Clean 🧹
@@ -24,24 +30,39 @@ make clean
 ### Project structure 🧱
 
 ```text
+.
 ├── cli
+│   ├── cli.o
 │   ├── inc
 │   │   └── interactive.h
 │   ├── Makefile
 │   └── src
 │       └── interactive.c
 ├── core
+│   ├── core.o
 │   ├── inc
+│   │   ├── commands.h
 │   │   ├── device.h
 │   │   ├── info.h
-│   │   └── interactive_mode.h
+│   │   ├── interactive_mode.h
+│   │   └── xfs
+│   │       ├── utils.h
+│   │       ├── xfs.h
+│   │       └── xfs_types.h
 │   ├── Makefile
 │   └── src
+│       ├── commands.c
 │       ├── device.c
 │       ├── info.c
 │       ├── interactive_mode.c
-│       └── main.c
+│       ├── main.c
+│       └── xfs.c
 ├── create-loop-dev-file.sh
+├── docs
+│   ├── initial-xfs-sb-configuration.txt
+│   └── report.md
 ├── Makefile
 ├── README.md
+├── start.sh
+└── xfs.fs
 ```

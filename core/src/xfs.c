@@ -4,6 +4,7 @@
 #include <endian.h>
 #include <features.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -276,14 +277,14 @@ xfs_err_t xfs_find_entry_(xfs_t *fm, xfs_dir_entry_t *expected) {
   return self.err;
 }
 
-xfs_err_t xfs_cd(xfs_t *fm, char const *dirname, size_t dirnamelen) {
-  if (dirnamelen == 1 && dirname[0] == '/') {
+xfs_err_t xfs_cd(xfs_t *fm, char const *dirname, size_t dirname_size) {
+  if (dirname_size == 1 && dirname[0] == '/') {
     fm->ino_current_dir = be64toh(fm->sb.sb_rootino);
     return XFS_ERR_NONE;
   }
   xfs_dir_entry_t dir;
-  memcpy(dir.name, dirname, dirnamelen);
-  dir.namelen = dirnamelen;
+  memcpy(dir.name, dirname, dirname_size);
+  dir.namelen = dirname_size;
   XFS_CHKTHROW(xfs_find_entry_(fm, &dir));
   if (dir.ftype != XFS_DIR3_FT_DIR)
     return XFS_ERR_NOT_A_DIRECTORY;
@@ -424,4 +425,54 @@ xfs_err_t xfs_cp(xfs_t *fm, char const *from, char const *to) {
   }
   free(old_path);
   return XFS_ERR_NONE;
+}
+
+
+static xfs_err_t xfs_iter_over_file_blocks_(xfs_t *fm, xfs_dir_entry_t *dir_entry, void *self, callback_t callback) {
+  __uint16_t inodesize = be16toh(fm->sb.sb_inodesize);
+  void *inode_info = alloca(inodesize);
+  fseek(fm->f, inodesize * dir_entry->inumber, SEEK_SET);
+  if (fread(inode_info, inodesize, 1, fm->f) != 1)
+    return XFS_ERR_DEVICE;
+  xfs_dinode_core_t *di = inode_info;
+  if (be16toh(di->di_magic) != XFS_DINODE_MAGIC)
+    return XFS_ERR_MAGIC;
+  void *dfork = (void *)((char *)inode_info + xfs_dinode_size(di));
+
+  iterfun_t iterfun = NULL;
+  switch (di->di_format) {
+  case XFS_DINODE_FMT_EXTENTS:
+    iterfun = xfs_iter_extents_;
+    break;
+  case XFS_DINODE_FMT_BTREE:
+    iterfun = xfs_iter_btree_;
+    break;
+  }
+
+  if (!iterfun)
+    return XFS_ERR_FORMAT;
+
+  xfs_err_t iter_err = iterfun(fm, di, dfork, self, callback);
+  return iter_err;
+  XFS_CHKTHROW(iter_err);
+}
+
+
+// cat analog :)
+xfs_err_t xfs_dog(xfs_t *fm, char const *filename, size_t filename_size) {
+  xfs_dir_entry_t file;
+  memcpy(file.name, filename, filename_size);
+  file.namelen = filename_size;
+  XFS_CHKTHROW(xfs_find_entry_(fm, &file));
+
+  if (file.ftype != XFS_DIR3_FT_REG_FILE)
+    return XFS_ERR_INVALID_FILE;
+
+  xfs_cp_file_block_self_t this;
+  this.blocksize = be32toh(fm->sb.sb_blocksize);
+  this.stream = stdout; // output
+  this.err = XFS_ERR_NONE;
+  
+  xfs_iter_over_file_blocks_(fm, &file, &this, xfs_cp_file_block__);
+  return this.err;
 }

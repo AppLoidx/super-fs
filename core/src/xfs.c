@@ -292,6 +292,39 @@ xfs_err_t xfs_cd(xfs_t *fm, char const *dirname, size_t dirname_size) {
   return XFS_ERR_NONE;
 }
 
+static xfs_err_t fm_xfs_iter_file_blocks_(xfs_t *fm, xfs_dir_entry_t *what, 
+void *self, callback_t callback) {
+  __uint16_t inodesize = be16toh(fm->sb.sb_inodesize);
+  void *inode_info = alloca(inodesize);
+  fseek(fm->f, inodesize * what->inumber, SEEK_SET);
+  if (fread(inode_info, inodesize, 1, fm->f) != 1)
+    return XFS_ERR_DEVICE;
+  xfs_dinode_core_t *di = inode_info;
+  if (be16toh(di->di_magic) != XFS_DINODE_MAGIC)
+    return XFS_ERR_MAGIC;
+  void *dfork = (void *)((char *)inode_info + xfs_dinode_size(di));
+
+  iterfun_t iterfun = NULL;
+  switch (di->di_format) {
+  case XFS_DINODE_FMT_EXTENTS:
+    iterfun = xfs_iter_extents_;
+    break;
+  case XFS_DINODE_FMT_BTREE:
+    iterfun = xfs_iter_btree_;
+    break;
+  }
+
+  if (!iterfun)
+    return XFS_ERR_FORMAT;
+
+  xfs_err_t iter_err = iterfun(fm, di, dfork, self, callback);
+  return iter_err;
+
+  XFS_CALL_WRAP(iter_err);
+}
+
+
+
 typedef struct xfs_cp_file_block_self {
   __uint32_t blocksize;
   FILE *stream;
@@ -309,40 +342,18 @@ static int xfs_cp_file_block__(void *self_, void *data) {
 }
 
 static xfs_err_t xfs_cp_file__(xfs_t *fm, xfs_dir_entry_t *dir_entry) {
-  __uint16_t inodesize = be16toh(fm->sb.sb_inodesize);
-  void *inode_info = alloca(inodesize);
-  fseek(fm->f, inodesize * dir_entry->inumber, SEEK_SET);
-  if (fread(inode_info, inodesize, 1, fm->f) != 1)
-    return XFS_ERR_DEVICE;
-  xfs_dinode_core_t *di = inode_info;
-  if (be16toh(di->di_magic) != XFS_DINODE_MAGIC)
-    return XFS_ERR_MAGIC;
-  void *dfork = (void *)((char *)inode_info + xfs_dinode_size(di));
-
-  iterfun_t iterfun = NULL;
-  switch (di->di_format) {
-    case XFS_DINODE_FMT_EXTENTS:
-      iterfun = xfs_iter_extents_;
-      break;
-    case XFS_DINODE_FMT_BTREE:
-      iterfun = xfs_iter_btree_;
-      break;
-  }
-
-  if (!iterfun)
-    return XFS_ERR_FORMAT;
 
   FILE *f = fopen(dir_entry->name, "wb");
   if (!f)
     return XFS_ERR_OUT_DEVICE;
-  xfs_cp_file_block_self_t self;
-  self.blocksize = be32toh(fm->sb.sb_blocksize);
-  self.stream = f;
-  self.err = XFS_ERR_NONE;
-  xfs_err_t iter_err = iterfun(fm, di, dfork, &self, xfs_cp_file_block__);
+  xfs_cp_file_block_self_t this;
+  this.blocksize = be32toh(fm->sb.sb_blocksize);
+  this.stream = f;
+  this.err = XFS_ERR_NONE;
+  fm_xfs_iter_file_blocks_(fm, dir_entry, &this, xfs_cp_file_block__);
   fclose(f);
-  XFS_CALL_WRAP(iter_err);
-  return self.err;
+
+  return this.err;
 }
 
 static int is_self_or_parent_(char const *name) {

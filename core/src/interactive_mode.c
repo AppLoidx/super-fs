@@ -46,7 +46,6 @@ int start_interactive_mode(char * fs_file) {
       fputs("Goodbye! 😛😛😛 \n", stderr);
       break;
     }
-    fprintf(stderr, "You input is %s\n", input);
     resolve(input, &fm);
   }
 
